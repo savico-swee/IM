@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/wuyan94zl/IM/controllers"
 	"github.com/wuyan94zl/IM/websocket"
 )
 
@@ -10,7 +11,19 @@ func main(){
 	go hub.Run()
 	bindAddress := "localhost:2303"
 	r := gin.Default()
+
+	r.Static("css", "./html/css")
+	r.LoadHTMLGlob("./html/**/*")
+
 	//r.GET("/ping", websocket.Ping)
+
+	//聊天室列表
+	r.GET("/rooms", controllers.RoomList)
+
+	//创建聊天室
+	r.POST("/rooms/add", controllers.RoomAdd)
+
+	// 进入聊天室
 	r.GET("/ws/:room", func(c *gin.Context) {
 		websocket.RunWs(hub,c)
 	})

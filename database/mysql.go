@@ -8,7 +8,7 @@ var err_db error
 // 初始化 mysql DB 连接实例
 func init() {
 	// 单例模式获取数据库连接 实例
-	DB, err_db = gorm.Open("mysql", "root:123456@/blog?charset=utf8&parseTime=True&loc=Local")
+	DB, err_db = gorm.Open("mysql", "root:123456@/imdatabase?charset=utf8&parseTime=True&loc=Local")
 	if err_db != nil {
 		panic(err_db)
 	}

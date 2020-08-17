@@ -3,7 +3,7 @@
 
 <head>
     <title>test</title>
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
 </head>
 
 <body>
@@ -40,21 +40,23 @@
 <script type="text/javascript">
 var ws;
 
-if (window.WebSocket) {
-    ws = new WebSocket("ws://localhost:2303/ws/1234");
-    //连接打开时触发
-    ws.onopen = function(evt) {
-        ws.send("有人进入聊天室")
-    };
-    //接收到消息时触发
-    ws.onmessage = function(evt) {
-        addMessageToPanel(evt.data)
-    };
-    //连接关闭时触发
-    ws.onclose = function(evt) {
-        console.log("Connection closed.");
-    };
-}
+var name = "asd";
+
+ws = new WebSocket("ws://localhost:2303/ws/1235?name="+name);
+//连接打开时触发
+ws.onopen = function(evt) {
+    ws.send("有人进入聊天室")
+};
+//接收到消息时触发
+ws.onmessage = function(evt) {
+    var data = JSON.parse(evt.data)
+    addMessageToPanel(data)
+};
+//连接关闭时触发
+ws.onclose = function(evt) {
+    console.log("Connection closed.");
+};
+
 
 // 发送消息
 function sendMessage(){
@@ -63,12 +65,9 @@ function sendMessage(){
     // addMessageToPanel(message,1)
 }
 
-function addMessageToPanel(message,type = 0){
-    var s = ''
-    if(type !== 0){
-        s = 'style="float: right;"'
-    }
-    var h = '<div class="panel-body"><div '+s+'><span>'+message+'</span><span><-用户</span></div></div>'
+function addMessageToPanel(message){
+
+    var h = '<div class="panel-body"><span>'+message.name+'</span><span>'+message.message+'</span><span>'+message.time+'</span></div>'
     $("#messages").append(h)
 }
 </script>

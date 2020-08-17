@@ -1,12 +1,13 @@
 package websocket
 
 import (
-	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"time"
 )
 
 var upGrader = websocket.Upgrader{
@@ -76,28 +77,34 @@ func (c *Client) readMsg(){
 			}
 			break
 		}
-		//fmt.Println(string(message))
 		if string(message) == "" {// 接收到空，则关闭连接
 			c.hub.unregister <- c
 			return
 		}else{
-			message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-			c.hub.broadcast <- message
+			// 封装消息 map
+			msg := map[string]string{"name":c.name,"message":string(message),"time":time.Now().String()}
+			// map 转 bytes 发送 json 数据
+			bt,err := json.Marshal(msg)
+			if err != nil {
+				break
+			}
+			c.hub.broadcast <- bt
 			c.hub.room <- c.room
 		}
 	}
 }
 
 func RunWs(hub *Hub,c *gin.Context) {
+	room := c.Param("room")
+	name := c.DefaultQuery("name","wow")
 	//升级get请求为webSocket协议
 	conn, err := upGrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	room := c.Param("room")
 	// 实例化新用户
-	client := &Client{hub:hub,conn: conn,send: make(chan []byte),room: room}
+	client := &Client{hub:hub,conn: conn,send: make(chan []byte),room: room,name: name}
 	// 新用户注册 想管道发送注册信息
 	client.hub.register <- client
 	fmt.Println(client)
