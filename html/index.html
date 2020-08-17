@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>test</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>标题</h1>
+    </div>
+    <div class="container">
+        <div class="text-justify container text-secondary">
+            <div class="col-sm-8 ">
+                <div class="panel panel-default panel-body box-show" id="messages">
+                </div>
+                <form role="form">
+                    <div class="form-group">
+                        <textarea class="form-control sendMessage" rows="3"></textarea>
+                    </div>
+                    <a class="btn btn-default" onclick="sendMessage()">发送</a>
+                </form>
+            </div>
+            <div class="col-sm-4 ">
+                <div class="panel panel-default panel-body box-show">
+                    <p>ddd</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<style type="text/css">
+.tkfx {
+    position: absolute;
+    transform: rotate(-90deg);
+}
+</style>
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script type="text/javascript">
+var ws;
+
+if (window.WebSocket) {
+    ws = new WebSocket("ws://localhost:2303/ws/1234");
+    //连接打开时触发
+    ws.onopen = function(evt) {
+        ws.send("有人进入聊天室")
+    };
+    //接收到消息时触发
+    ws.onmessage = function(evt) {
+        addMessageToPanel(evt.data)
+    };
+    //连接关闭时触发
+    ws.onclose = function(evt) {
+        console.log("Connection closed.");
+    };
+}
+
+// 发送消息
+function sendMessage(){
+    var message = $('.sendMessage').val()
+    ws.send(message)
+    // addMessageToPanel(message,1)
+}
+
+function addMessageToPanel(message,type = 0){
+    var s = ''
+    if(type !== 0){
+        s = 'style="float: right;"'
+    }
+    var h = '<div class="panel-body"><div '+s+'><span>'+message+'</span><span><-用户</span></div></div>'
+    $("#messages").append(h)
+}
+</script>
+
+</html>
