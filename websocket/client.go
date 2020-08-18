@@ -5,10 +5,20 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/wuyan94zl/IM/database"
+	"github.com/wuyan94zl/IM/models"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
+
+//type SendMessage struct {
+//	Name 		string	`json:name`
+//	Message 	string	`json:message`
+//	Time 		string	`json:time`
+//	Type 		string  `json:type`
+//}
 
 var upGrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -27,6 +37,7 @@ type Client struct{
 	send	chan []byte
 	// 客户端名称
 	name 	string
+	id		int
 	// 房间
 	room	string
 }
@@ -67,6 +78,14 @@ func (c *Client) writeMsg(){
 func (c *Client) readMsg(){
 	defer func() {
 		c.hub.unregister <- c
+		// 推送 退出 消息
+		msg := map[string]string{"name":c.name,"message":"退出聊天室","time":time.Now().Format("2006-01-02 15:04:05"),"type": "3","id":strconv.Itoa(c.id)}
+		//bt := []byte("return im")
+		// map 转 bytes 发送 json 数据
+		bt,_ := json.Marshal(msg)
+		c.hub.broadcast <- bt
+		c.hub.room <- c.room
+		models.RightLog(c.name,"退出聊天室",c.room,3)
 		c.conn.Close()
 	}()
 	for  {
@@ -77,18 +96,19 @@ func (c *Client) readMsg(){
 			}
 			break
 		}
-		if string(message) == "" {// 接收到空，则关闭连接
-			c.hub.unregister <- c
-			return
+		if string(message) == "" {// 接收到空，不处理
+			//c.hub.unregister <- c
+			//return
 		}else{
-			// 封装消息 map
-			msg := map[string]string{"name":c.name,"message":string(message),"time":time.Now().String()}
+			msgtype := "1"
+			//封装消息 map
+			models.RightLog(c.name,string(message),c.room,1)
+			msg := map[string]string{"name":c.name,"message":string(message),"time":time.Now().Format("2006-01-02 15:04:05"),"type": msgtype}
+			fmt.Println("send message")
+			fmt.Println(msg)
 			// map 转 bytes 发送 json 数据
-			bt,err := json.Marshal(msg)
-			if err != nil {
-				break
-			}
-			c.hub.broadcast <- bt
+			message,_ := json.Marshal(msg)
+			c.hub.broadcast <- message
 			c.hub.room <- c.room
 		}
 	}
@@ -103,12 +123,23 @@ func RunWs(hub *Hub,c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
+	user := models.User{}
+	database.DB.Where("name = ?",name).First(&user)
 	// 实例化新用户
-	client := &Client{hub:hub,conn: conn,send: make(chan []byte),room: room,name: name}
+	client := &Client{hub:hub,conn: conn,send: make(chan []byte),room: room,name: name,id: user.Id}
+	// 连接时休眠1秒  防止刷新页面 先连接后退出
+	time.Sleep(time.Duration(1)*time.Second)
+
+	// map 转 bytes 发送 json 数据
+	msg := map[string]string{"name":client.name,"message":"进入聊天室","time":time.Now().Format("2006-01-02 15:04:05"),"type": "2","id":strconv.Itoa(user.Id)}
+	bt,_ := json.Marshal(msg)
+	client.hub.broadcast <- bt
+	client.hub.room <- room
+	models.RightLog(client.name,"进入聊天室",room,2)
 	// 新用户注册 想管道发送注册信息
 	client.hub.register <- client
-	fmt.Println(client)
-	fmt.Println(client.hub)
+
+
 	go client.readMsg()
 	go client.writeMsg()
 }

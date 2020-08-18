@@ -7,13 +7,24 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1>标题</h1>
-    </div>
+
     <div class="container">
         <div class="text-justify container text-secondary">
-            <div class="col-sm-8 ">
+            <div class="col-sm-10 ">
+                <h3>{{.room.Name}} - {{.room.Number}}</h3>
                 <div class="panel panel-default panel-body box-show" id="messages">
+                    {{range $k,$v := .logs}}
+                        {{if eq $v.Type 1}}
+                            <div class="panel panel-default panel-body box-show" style="font-size: 20px">
+                                <div class="col-sm-2" style="text-align: right">{{$v.UserName}} 说：</div>
+                                <div class="col-sm-7">{{$v.Message}}</div>
+                                <div class="col-sm-3" style="font-size: 10px;text-align: right;line-height: 10px"><br/>{{$v.Time}}</div>
+                            </div>
+                            {{else}}
+                                <p style="text-align: center;color: #1b6d85">{{$v.UserName}} {{$v.Message}} {{$v.Time}}</p>
+                            {{end}}
+
+                    {{end}}
                 </div>
                 <form role="form">
                     <div class="form-group">
@@ -22,9 +33,13 @@
                     <a class="btn btn-default" onclick="sendMessage()">发送</a>
                 </form>
             </div>
-            <div class="col-sm-4 ">
-                <div class="panel panel-default panel-body box-show">
-                    <p>ddd</p>
+            <div class="col-sm-2 ">
+                <h3>房间人数： <span id="user_num">{{.userNum}}</span></h3>
+                <div class="panel panel-default panel-body box-show" id="users">
+                    {{range $k,$v := .roomHasUser}}
+                        <p id="user{{$v.UserId}}">{{$v.UserName}}</p>
+                    {{end}}
+
                 </div>
             </div>
         </div>
@@ -40,12 +55,14 @@
 <script type="text/javascript">
 var ws;
 
-var name = "asd";
+var room = {{.room.Number}};
+var name = {{.name}};
+var user_num = {{.userNum}}
 
-ws = new WebSocket("ws://localhost:2303/ws/1235?name="+name);
+ws = new WebSocket("ws://localhost:2303/ws/"+room+"?name="+name);
 //连接打开时触发
 ws.onopen = function(evt) {
-    ws.send("有人进入聊天室")
+
 };
 //接收到消息时触发
 ws.onmessage = function(evt) {
@@ -53,21 +70,36 @@ ws.onmessage = function(evt) {
     addMessageToPanel(data)
 };
 //连接关闭时触发
-ws.onclose = function(evt) {
-    console.log("Connection closed.");
-};
-
-
+ws.onclose = function(evt) {};
 // 发送消息
 function sendMessage(){
-    var message = $('.sendMessage').val()
-    ws.send(message)
-    // addMessageToPanel(message,1)
+    ws.send($('.sendMessage').val())
 }
 
 function addMessageToPanel(message){
-
-    var h = '<div class="panel-body"><span>'+message.name+'</span><span>'+message.message+'</span><span>'+message.time+'</span></div>'
+    var type = message.type
+    var h = ''
+    if(type == '1'){
+        // h = '<div class="panel panel-default panel-body box-show"><span>'+message.name+'说：</span><span>'+message.message+'</span><span>'+message.time+'</span></div>'
+        h = `<div class="panel panel-default panel-body box-show" style="font-size: 20px">
+        <div class="col-sm-2" style="text-align: right">`+message.name+` 说：</div>
+        <div class="col-sm-7">`+message.message+`</div>
+        <div class="col-sm-3">`+message.time+`</div>
+        </div>`
+    }else{
+        h = `<p style="text-align: center;color: #1b6d85">` + message.name + ` ` +message.message + ` ` +message.time + `</p>`
+        if(type == '2'){
+            console.log('增加')
+            $("#users").append('<p id="user'+message.id+'">'+message.name+'</p>')
+            user_num++
+            $('#user_num').html(user_num)
+        }else{
+            console.log('删除' + "#user"+message.id)
+            user_num--
+            $('#user_num').html(user_num)
+            $("#user"+message.id).remove();
+        }
+    }
     $("#messages").append(h)
 }
 </script>

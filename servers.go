@@ -23,7 +23,10 @@ func main(){
 	//创建聊天室
 	r.POST("/rooms/add", controllers.RoomAdd)
 
-	// 进入聊天室
+	//进入聊天室
+	r.GET("/room/:number/:name", controllers.RoomInfo)
+
+	//聊天室服务
 	r.GET("/ws/:room", func(c *gin.Context) {
 		websocket.RunWs(hub,c)
 	})

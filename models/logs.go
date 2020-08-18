@@ -11,7 +11,15 @@ func init() {
 
 type Log struct {
 	Id 			int
-	UserId 		int
+	UserName 	string
 	Message 	string
+	RoomNumber 	string
+	Type 		int
 	CreatedAt 	time.Time
+	Time 		string	`gorm:"-"`
+}
+
+func RightLog(name string,message string,roomNumber string,t int){
+	log := Log{UserName: name,Message: message,RoomNumber: roomNumber,Type: t,CreatedAt: time.Now()}
+	database.DB.Create(&log)
 }
