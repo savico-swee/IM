@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/wuyan94zl/IM/config"
 	"github.com/wuyan94zl/IM/controllers"
 	"github.com/wuyan94zl/IM/websocket"
 )
@@ -28,6 +29,6 @@ func main(){
 	r.GET("/ws/:room", func(c *gin.Context) {
 		websocket.RunWs(hub,c)
 	})
-	r.Run(":8303")
+	r.Run(config.Port)
 
 }

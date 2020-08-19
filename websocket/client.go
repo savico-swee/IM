@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -28,7 +27,8 @@ var upGrader = websocket.Upgrader{
 }
 var (
 	newline = []byte{'\n'}
-	space   = []byte{'<','b','r','>'}
+	//space   = []byte{'<','b','r','>'}
+	space   = []byte{'\n'}
 )
 type Client struct{
 	hub 	*Hub
@@ -100,7 +100,7 @@ func (c *Client) readMsg(){
 			//c.hub.unregister <- c
 			//return
 		}else{
-			message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+			//message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 			msgtype := "1"
 			//封装消息 map
 			models.RightLog(c.name,string(message),c.room,1)

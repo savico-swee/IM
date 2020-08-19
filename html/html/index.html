@@ -17,7 +17,7 @@
                         {{if eq $v.Type 1}}
                             <div class="panel panel-default panel-body box-show" style="font-size: 20px">
                                 <div class="col-sm-2" style="text-align: right"><span style="color: #2e6da4;font-weight: bold">{{$v.UserName}}</span> 说：</div>
-                                <div class="col-sm-7">{{$v.HtmlMessage}}</div>
+                                <div class="col-sm-7">{{$v.Message}}</div>
                                 <div class="col-sm-3" style="font-size: 10px;text-align: right;line-height: 10px"><br/>{{$v.Time}}</div>
                             </div>
                         {{else}}
@@ -58,7 +58,7 @@ var room = {{.room.Number}};
 var name = {{.name}};
 var user_num = {{.userNum}}
 
-ws = new WebSocket("ws://localhost:8303/ws/"+room+"?name="+name);
+ws = new WebSocket("ws://"+{{.wshost}}+{{.wsport}}+"/ws/"+room+"?name="+name);
 //连接打开时触发
 ws.onopen = function(evt) {
 

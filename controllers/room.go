@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/wuyan94zl/IM/config"
 	"github.com/wuyan94zl/IM/database"
 	"github.com/wuyan94zl/IM/models"
-	"html/template"
 	rand2 "math/rand"
 	"net/http"
 	"sort"
@@ -62,7 +62,6 @@ func RoomInfo(c *gin.Context) {
 
 	for k,v := range logs{
 		logs[k].Time = v.CreatedAt.Format("2006-01-02 15:04:05")
-		logs[k].HtmlMessage = template.HTML(v.Message)
 	}
 	sort.Slice(logs, func(i, j int) bool {
 		return logs[i].Id < logs[j].Id
@@ -73,5 +72,7 @@ func RoomInfo(c *gin.Context) {
 		"logs": logs,
 		"userNum": len(roomHasUser),
 		"roomHasUser": roomHasUser,
+		"wshost": config.Host,
+		"wsport": config.Port,
 	})
 }
