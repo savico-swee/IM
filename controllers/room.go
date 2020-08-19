@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/wuyan94zl/IM/database"
 	"github.com/wuyan94zl/IM/models"
+	"html/template"
 	rand2 "math/rand"
 	"net/http"
 	"sort"
@@ -15,28 +15,23 @@ import (
 func RoomList(c *gin.Context)  {
 	rooms := []models.Room{}
 	database.DB.Find(&rooms)
-	fmt.Println(rooms)
 	c.HTML(http.StatusOK, "rooms.html", gin.H{
 		"rooms": rooms,
 	})
 }
 
 func RoomAdd(c *gin.Context) {
-
 	rand2.Seed(time.Now().UnixNano())
 	n := rand2.Intn(999999)
 	number := 888000 + n
 	room := models.Room{Number: strconv.Itoa(number),Name: c.PostForm("name"),UserNum: 0,CreateAt: time.Now()}
-	fmt.Println(room)
 	database.DB.Create(&room)
 	c.Redirect(http.StatusMovedPermanently,"/rooms")
 }
 
 func RoomInfo(c *gin.Context) {
 	number := c.Param("number")
-	fmt.Println(number)
 	name := c.Param("name")
-	fmt.Println(name)
 	if number == "" || name == "" {
 		return
 	}
@@ -57,23 +52,21 @@ func RoomInfo(c *gin.Context) {
 	database.DB.Where("number = ?",number).First(&room)
 	roomHasUser := []models.RoomHasUser{}
 	database.DB.Where("room_number = ?",number).Find(&roomHasUser)
-	fmt.Println(roomHasUser)
 	roomHasUser = append(roomHasUser,models.RoomHasUser{Id: 999999999,UserName: name})
 	if room.Number != number {
 		return
 	}
 
 	logs := []models.Log{}
-	database.DB.Offset(0).Limit(10).Order("id desc").Find(&logs)
+	database.DB.Offset(0).Limit(30).Order("id desc").Find(&logs)
 
 	for k,v := range logs{
 		logs[k].Time = v.CreatedAt.Format("2006-01-02 15:04:05")
+		logs[k].HtmlMessage = template.HTML(v.Message)
 	}
-	fmt.Println(logs)
 	sort.Slice(logs, func(i, j int) bool {
 		return logs[i].Id < logs[j].Id
 	})
-	fmt.Println("length",len(logs))
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"room": room,
 		"name": name,

@@ -15,8 +15,6 @@ func main(){
 	r.Static("css", "./html/css")
 	r.LoadHTMLGlob("./html/**/*")
 
-	//r.GET("/ping", websocket.Ping)
-
 	//聊天室列表
 	r.GET("/rooms", controllers.RoomList)
 

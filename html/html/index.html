@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>test</title>
+    <title>{{.room.Name}} - {{.room.Number}}</title>
     <link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
 </head>
 
@@ -11,26 +11,25 @@
     <div class="container">
         <div class="text-justify container text-secondary">
             <div class="col-sm-10 ">
-                <h3>{{.room.Name}} - {{.room.Number}}</h3>
-                <div class="panel panel-default panel-body box-show" id="messages">
+                <h3>{{.room.Name}} - {{.room.Number}} <span style="float: right"><a href="/rooms">返回聊天室列表</a></span></h3>
+                <div class="panel panel-default panel-body box-show" id="messages" style="height: 600px;overflow:auto;">
                     {{range $k,$v := .logs}}
                         {{if eq $v.Type 1}}
                             <div class="panel panel-default panel-body box-show" style="font-size: 20px">
-                                <div class="col-sm-2" style="text-align: right">{{$v.UserName}} 说：</div>
-                                <div class="col-sm-7">{{$v.Message}}</div>
+                                <div class="col-sm-2" style="text-align: right"><span style="color: #2e6da4;font-weight: bold">{{$v.UserName}}</span> 说：</div>
+                                <div class="col-sm-7">{{$v.HtmlMessage}}</div>
                                 <div class="col-sm-3" style="font-size: 10px;text-align: right;line-height: 10px"><br/>{{$v.Time}}</div>
                             </div>
-                            {{else}}
-                                <p style="text-align: center;color: #1b6d85">{{$v.UserName}} {{$v.Message}} {{$v.Time}}</p>
-                            {{end}}
-
+                        {{else}}
+                            <p style="text-align: center;color: RGB(43,162,69)">{{$v.UserName}} {{$v.Message}} {{$v.Time}}</p>
+                        {{end}}
                     {{end}}
                 </div>
                 <form role="form">
                     <div class="form-group">
-                        <textarea class="form-control sendMessage" rows="3"></textarea>
+                        <textarea class="form-control sendMessage" rows="3" id="sendMessage"></textarea>
                     </div>
-                    <a class="btn btn-default" onclick="sendMessage()">发送</a>
+                    <a class="btn btn-default" onclick="sendMessage()">发送</a> <span>Ctrl + Enter 快捷发送</span>
                 </form>
             </div>
             <div class="col-sm-2 ">
@@ -74,20 +73,20 @@ ws.onclose = function(evt) {};
 // 发送消息
 function sendMessage(){
     ws.send($('.sendMessage').val())
+    $('.sendMessage').val("")
 }
 
 function addMessageToPanel(message){
     var type = message.type
     var h = ''
     if(type == '1'){
-        // h = '<div class="panel panel-default panel-body box-show"><span>'+message.name+'说：</span><span>'+message.message+'</span><span>'+message.time+'</span></div>'
         h = `<div class="panel panel-default panel-body box-show" style="font-size: 20px">
-        <div class="col-sm-2" style="text-align: right">`+message.name+` 说：</div>
+        <div class="col-sm-2" style="text-align: right"><span style="color: #2e6da4;font-weight: bold">`+message.name+`</span> 说：</div>
         <div class="col-sm-7">`+message.message+`</div>
-        <div class="col-sm-3">`+message.time+`</div>
+        <div class="col-sm-3" style="font-size: 10px;text-align: right;line-height: 10px">`+message.time+`</div>
         </div>`
     }else{
-        h = `<p style="text-align: center;color: #1b6d85">` + message.name + ` ` +message.message + ` ` +message.time + `</p>`
+        h = `<p style="text-align: center;color: RGB(43,162,69)">` + message.name + ` ` +message.message + ` ` +message.time + `</p>`
         if(type == '2'){
             console.log('增加')
             $("#users").append('<p id="user'+message.id+'">'+message.name+'</p>')
@@ -101,7 +100,20 @@ function addMessageToPanel(message){
         }
     }
     $("#messages").append(h)
+    downMessage()
 }
+function downMessage() {
+    $('#messages').scrollTop( $('#messages')[0].scrollHeight);
+}
+
+downMessage()
+$(function() {
+    $('#sendMessage').keypress(function(event){
+        if(event.ctrlKey && event.keyCode == '10') {
+            sendMessage()
+        }
+    });
+})
 </script>
 
 </html>

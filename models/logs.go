@@ -17,6 +17,7 @@ type Log struct {
 	Type 		int
 	CreatedAt 	time.Time
 	Time 		string	`gorm:"-"`
+	HtmlMessage interface{} `gorm:"-"`
 }
 
 func RightLog(name string,message string,roomNumber string,t int){

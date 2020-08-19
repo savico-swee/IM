@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,7 @@ var upGrader = websocket.Upgrader{
 }
 var (
 	newline = []byte{'\n'}
-	space   = []byte{' '}
+	space   = []byte{'<','b','r','>'}
 )
 type Client struct{
 	hub 	*Hub
@@ -60,7 +61,6 @@ func (c *Client) writeMsg(){
 				return
 			}
 			w.Write(message)
-			fmt.Println(string(message))
 			// Add queued chat messages to the current websocket message.
 			n := len(c.send)
 			for i := 0; i < n; i++ {
@@ -100,12 +100,11 @@ func (c *Client) readMsg(){
 			//c.hub.unregister <- c
 			//return
 		}else{
+			message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 			msgtype := "1"
 			//封装消息 map
 			models.RightLog(c.name,string(message),c.room,1)
 			msg := map[string]string{"name":c.name,"message":string(message),"time":time.Now().Format("2006-01-02 15:04:05"),"type": msgtype}
-			fmt.Println("send message")
-			fmt.Println(msg)
 			// map 转 bytes 发送 json 数据
 			message,_ := json.Marshal(msg)
 			c.hub.broadcast <- message
@@ -142,35 +141,5 @@ func RunWs(hub *Hub,c *gin.Context) {
 
 	go client.readMsg()
 	go client.writeMsg()
-}
-
-//webSocket请求ping 返回pong
-func Ping(c *gin.Context) {
-	fmt.Println("sssss")
-	//升级get请求为webSocket协议
-	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer ws.Close()
-	for {
-		//读取ws中的数据
-		mt, message, err := ws.ReadMessage()
-		if err != nil {
-			break
-		}
-
-		if string(message) == "ping" {
-			message = []byte("pong")
-		}
-		fmt.Println(mt)
-		fmt.Println(string(message))
-		//写入ws数据
-		err = ws.WriteMessage(mt, message)
-		if err != nil {
-			break
-		}
-	}
 }
 
