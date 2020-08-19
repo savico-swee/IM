@@ -58,7 +58,7 @@ var room = {{.room.Number}};
 var name = {{.name}};
 var user_num = {{.userNum}}
 
-ws = new WebSocket("ws://localhost:2303/ws/"+room+"?name="+name);
+ws = new WebSocket("ws://localhost:8303/ws/"+room+"?name="+name);
 //连接打开时触发
 ws.onopen = function(evt) {
 

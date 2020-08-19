@@ -9,7 +9,7 @@ import (
 func main(){
 	hub := websocket.NewHub()
 	go hub.Run()
-	bindAddress := "localhost:2303"
+
 	r := gin.Default()
 
 	r.Static("css", "./html/css")
@@ -28,6 +28,6 @@ func main(){
 	r.GET("/ws/:room", func(c *gin.Context) {
 		websocket.RunWs(hub,c)
 	})
-	r.Run(bindAddress)
+	r.Run(":8303")
 
 }
